@@ -1,4 +1,3 @@
-
 const CONFIG = {
   startDate: '2024-11-06T00:00:00',
 
@@ -21,7 +20,7 @@ const CONFIG = {
     "За те, що з тобою навіть мовчання не буває незручним.",
     "За твою сміливість бути собою.",
     "За твої мрії, якими ти зі мною ділишся.",
-    "За те, як ти вмієш захоплюватися тим, що любиш.",
+    "За те, як ти вмієш захоплюватися тим, що тобі до вподоби.",
     "За кожне наше спонтанне «а давай».",
     "За повідомлення від тебе, які здатні змінити мій настрій.",
     "За те, що я хочу розповідати тобі навіть найменші новини.",
@@ -46,7 +45,7 @@ const CONFIG = {
     "За фотографії, на яких я бачу наше щастя.",
     "За спогади, які ми створили за ці два роки.",
     "За те, що наша історія має власні слова, жарти й символи.",
-    "За твою любов до милих і красивих речей.",
+    "За твою прихильність до милих і красивих речей.",
     "За те, як ти можеш зробити день святковим без особливого приводу.",
     "За твої несподівані ідеї.",
     "За твоє вміння помічати красу в деталях.",
@@ -98,7 +97,7 @@ const CONFIG = {
     "За те, що я хочу бути поруч і в прості, і в непрості дні.",
     "За те, що ти вчиш мене уважніше ставитися до почуттів.",
     "За кожну мить, коли ми обираємо одне одного.",
-    "За те, що наша любов складається не лише зі свят, а й із буднів.",
+    "За те, що наше кохання складається не лише зі свят, а й із буднів.",
     "За те, що я хочу дізнаватися тебе все більше, навіть через багато років.",
     "За ці два роки, які стали важливою частиною мого життя.",
     "За всі історії, які ми ще не встигли прожити.",
@@ -141,6 +140,13 @@ const CONFIG = {
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+
+// Одноразово очищаємо старі готові мрії з попередньої версії.
+// Після цього нові мрії, які ви додасте самостійно, зберігатимуться.
+if (localStorage.getItem('our730dreams-reset-v1') !== 'done') {
+  localStorage.removeItem('our730dreams');
+  localStorage.setItem('our730dreams-reset-v1', 'done');
+}
 
 function updateCounter() {
   const start = new Date(CONFIG.startDate);
@@ -247,8 +253,6 @@ $$('.photo-card').forEach(card => {
   const extensions = ['jpg', 'JPG', 'jpeg', 'JPEG', 'png', 'PNG', 'webp', 'WEBP'];
   let extensionIndex = 0;
 
-  // Важливо: не використовуємо lazy для зображення,
-  // яке ще не додане на сторінку.
   img.loading = 'eager';
   img.decoding = 'async';
   img.alt = card.querySelector('.photo-caption')?.textContent || 'Наш спогад';
@@ -361,7 +365,7 @@ function renderQuestion() {
   });
 }
 
-function addDream(text) {
+function addDream(text, done = false) {
   if (!text.trim()) return;
 
   const label = document.createElement('label');
@@ -369,12 +373,13 @@ function addDream(text) {
 
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
+  checkbox.checked = done;
 
   const mark = document.createElement('span');
   mark.className = 'checkmark';
 
   const title = document.createElement('span');
-  title.textContent = text;
+  title.textContent = text.trim();
 
   const tag = document.createElement('small');
   tag.textContent = 'наша мрія';
@@ -398,11 +403,7 @@ function loadDreams() {
       localStorage.getItem('our730dreams') || '[]'
     );
 
-    dreams.forEach(dream => {
-      addDream(dream.text);
-      const last = $$('.dream-item').at(-1);
-      if (last) last.querySelector('input').checked = dream.done;
-    });
+    dreams.forEach(dream => addDream(dream.text, dream.done));
   } catch (error) {
     console.warn('Не вдалося завантажити мрії:', error);
   }
